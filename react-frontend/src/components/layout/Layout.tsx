@@ -263,7 +263,7 @@ export function AuthLayout() {
       </main>
 
       {/* Attribution (AGPL Section 7(b) — required on all pages) */}
-      <footer className="relative z-10 py-4 text-center">
+      <footer className="relative z-10 py-4 flex items-center justify-center gap-3">
         <a
           href="https://github.com/jasperfordesq-ai/nexus-v1"
           target="_blank"
@@ -271,6 +271,15 @@ export function AuthLayout() {
           className="text-xs text-white/40 hover:text-white/70 transition-colors"
         >
           Built on Project NEXUS by Jasper Ford
+        </a>
+        <span className="text-white/20 text-xs">&middot;</span>
+        <a
+          href="https://github.com/anubisland/nexus-v1"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-white/40 hover:text-white/70 transition-colors"
+        >
+          Source Code
         </a>
       </footer>
     </div>

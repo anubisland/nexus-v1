@@ -182,18 +182,27 @@ export function Footer({ children, copyright }: FooterProps) {
               </Button>
             </div>
 
-            {/* Platform Attribution */}
-            <div className="pt-4 flex items-center justify-center gap-2 text-[11px] text-theme-subtle/60">
+            {/* Platform Attribution — AGPL-3.0 required notices */}
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] text-theme-subtle/60">
               <a
                 href="https://github.com/jasperfordesq-ai/nexus-v1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-theme-primary transition-colors"
               >
-                Project NEXUS
+                Built on Project NEXUS by Jasper Ford
               </a>
               <span>&middot;</span>
               <span>AGPL-3.0 &copy; 2024&ndash;{year} Jasper Ford</span>
+              <span>&middot;</span>
+              <a
+                href="https://github.com/anubisland/nexus-v1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-theme-primary transition-colors"
+              >
+                Source Code
+              </a>
               <span>&middot;</span>
               <Link to={tenantPath('/platform/terms')} className="hover:text-theme-primary transition-colors">
                 {t('footer.terms')}

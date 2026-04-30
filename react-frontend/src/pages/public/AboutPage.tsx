@@ -445,6 +445,9 @@ export function AboutPage() {
                     </div>
                     <h3 className="font-semibold text-theme-primary text-lg">{t('about.credits.open_source')}</h3>
                   </div>
+                  <p className="text-sm font-medium text-theme-primary mb-2">
+                    Powered by Project NEXUS — Created by Jasper Ford — Licensed under AGPL v3
+                  </p>
                   <p className="text-sm text-theme-muted mb-3">
                     {t('about.credits.license_text')}
                   </p>
@@ -457,6 +460,15 @@ export function AboutPage() {
                     >
                       <BookOpen className="w-4 h-4" aria-hidden="true" />
                       {t('about.credits.v1_source')}
+                    </a>
+                    <a
+                      href="https://github.com/anubisland/nexus-v1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+                    >
+                      <BookOpen className="w-4 h-4" aria-hidden="true" />
+                      Our Source Code (anubisland/nexus-v1)
                     </a>
                     <a
                       href="https://github.com/jasperfordesq-ai/api.project-nexus.net"
