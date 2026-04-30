@@ -4,28 +4,28 @@ This document explains how PHP memory limits are configured across the
 development and production containers, and how to override them for heavy
 artisan tasks without touching the Dockerfiles.
 
-## PHP `memory_limit` — aligned at 512M
+## PHP `memory_limit` — aligned at 1G
 
 Both `Dockerfile` (development) and `Dockerfile.prod` set
-`memory_limit = 512M`. This satisfies the CLAUDE.md rule that Dockerfile PHP
+`memory_limit = 1G`. This satisfies the CLAUDE.md rule that Dockerfile PHP
 settings must match, and the `dockerfile-drift` CI job enforces it.
 
 | Setting | Dev (`Dockerfile`) | Prod (`Dockerfile.prod`) |
 |---------|--------------------|--------------------------|
-| `memory_limit` | `512M` | `512M` |
-| `upload_max_filesize` | `50M` | `50M` |
-| `post_max_size` | `55M` | `55M` |
-| `max_execution_time` | `60` | `60` |
+| `memory_limit` | `1G` | `1G` |
+| `upload_max_filesize` | `100M` | `100M` |
+| `post_max_size` | `105M` | `105M` |
+| `max_execution_time` | `120` | `120` |
 
-512M comfortably handles HTTP requests, PHPUnit runs, most artisan commands,
-and typical seed operations. It also leaves headroom inside a 768M–1536M
-container allocation for Apache workers, opcache, and OS overhead.
+1G comfortably handles HTTP requests, PHPUnit runs, most artisan commands,
+and typical seed operations. It also leaves headroom inside the 2G container
+allocation for Apache workers, OPcache (256M), JIT buffer (100M), and OS overhead.
 
 ## Container memory allocations
 
 | Environment | File | Container limit | Rationale |
 |-------------|------|-----------------|-----------|
-| Development | `compose.yml` | `1536m` (mem_limit) | Generous headroom for Vite, PHPUnit, composer, schema dumps |
+| Development | `compose.yml` | `2g` (mem_limit) | Generous headroom for Vite, PHPUnit, composer, schema dumps |
 | Production | `compose.prod.yml` | see that file | Tuned to the Azure VM sizing |
 
 The container limit must always be **strictly greater** than the PHP
@@ -35,7 +35,7 @@ independently and opcache/JIT buffers live outside that budget.
 ## Overriding `memory_limit` for heavy artisan tasks
 
 Some tasks — PHPStan level ≥ 5, full Meilisearch reindex, bulk imports — need
-more than 512M for a single process. **Do not raise the baseline** (it would
+more than 1G for a single process. **Do not raise the baseline** (it would
 cascade to every Apache worker and risk OOM). Use a per-invocation override:
 
 ```bash
@@ -76,8 +76,8 @@ without polluting the web request surface.
 
 ## Related files
 
-- `Dockerfile` — dev PHP image, `memory_limit = 512M`
-- `Dockerfile.prod` — prod PHP image, `memory_limit = 512M`
+- `Dockerfile` — dev PHP image, `memory_limit = 1G`
+- `Dockerfile.prod` — prod PHP image, `memory_limit = 1G`
 - `compose.yml` — dev container limits (`mem_limit`, `mem_reservation`)
 - `compose.prod.yml` — prod container limits
 - `.github/workflows/ci.yml` — `dockerfile-drift` job enforces sync

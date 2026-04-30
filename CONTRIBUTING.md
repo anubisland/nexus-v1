@@ -6,7 +6,7 @@ Project NEXUS is released under **AGPL-3.0-or-later**. By contributing, you agre
 
 By submitting a contribution, you also agree to the [Project NEXUS Contributor Terms](CONTRIBUTOR_TERMS.md), including the licence, patent, ownership, third-party-code, and AI-disclosure terms described there.
 
-**Repository:** https://github.com/jasperfordesq-ai/nexus-v1
+**Repository:** https://github.com/anubisland/nexus-v1
 
 ---
 
@@ -48,7 +48,7 @@ Pull requests are checked automatically. A PR cannot pass the Project NEXUS PR q
 
 ## Getting Started
 
-1. **Fork** the repository on GitHub: https://github.com/jasperfordesq-ai/nexus-v1
+1. **Fork** the repository on GitHub: https://github.com/anubisland/nexus-v1
 2. **Clone** your fork:
    ```bash
    git clone https://github.com/YOUR_USERNAME/nexus-v1.git
