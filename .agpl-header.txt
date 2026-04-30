@@ -1,0 +1,63 @@
+AGPL-3.0 Source File Header Template
+=====================================
+Hyper-Local Community Platform — Built on Project NEXUS
+Copyright (C) 2026 Anubisland
+Built on Project NEXUS by Jasper Ford (https://github.com/jasperfordesq-ai/nexus-v1)
+Licensed under the GNU Affero General Public License v3.0 or later.
+
+USAGE
+-----
+Add the appropriate header block below to EVERY new source file you create.
+This satisfies the AGPL-3.0 requirement that modified source files carry
+prominent notices of modification.
+
+For PHP files — immediately after <?php:
+
+    <?php
+    // Copyright (C) 2026 Anubisland
+    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
+    // SPDX-License-Identifier: AGPL-3.0-or-later
+    // This file is part of the Hyper-Local Community Platform.
+    // See CHANGES.md for a record of modifications from the upstream source.
+
+For TypeScript / TSX files — at the top of the file:
+
+    // Copyright (C) 2026 Anubisland
+    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
+    // SPDX-License-Identifier: AGPL-3.0-or-later
+    // This file is part of the Hyper-Local Community Platform.
+    // See CHANGES.md for a record of modifications from the upstream source.
+
+For JavaScript files:
+
+    // Copyright (C) 2026 Anubisland
+    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
+    // SPDX-License-Identifier: AGPL-3.0-or-later
+    // This file is part of the Hyper-Local Community Platform.
+    // See CHANGES.md for a record of modifications from the upstream source.
+
+TOOLING
+-------
+The CONTRIBUTING.md SPDX Header Requirement section describes automated
+tooling for adding and verifying headers:
+
+    # Add headers to all files missing them
+    node scripts/add-spdx-headers.mjs
+
+    # Verify all files have correct headers
+    node scripts/check-spdx.mjs
+
+UPSTREAM ATTRIBUTION
+--------------------
+Project NEXUS is Copyright (C) Jasper Ford, licensed under AGPL-3.0-or-later.
+Upstream source: https://github.com/jasperfordesq-ai/nexus-v1
+Fork baseline:   commit 28421e5609f78466431f1fde6c12ec6cb772dd5a (2026-04-30)
+
+All modifications from the baseline are documented in CHANGES.md.
+The NOTICE file at the repository root contains authoritative legal attribution.
+
+FULL LICENSE
+------------
+The full text of the GNU Affero General Public License v3.0 is in the
+LICENSE file at the repository root, and is also available at:
+https://www.gnu.org/licenses/agpl-3.0.txt
