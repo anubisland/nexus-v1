@@ -1,6 +1,6 @@
 {
-  "name": "Project NEXUS",
-  "short_name": "NEXUS",
+  "name": "Anubisland",
+  "short_name": "Anubisland",
   "description": "Community Time Banking & Mutual Aid Platform",
   "start_url": "/",
   "display": "standalone",
@@ -78,14 +78,14 @@
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "NEXUS home screen on mobile"
+      "label": "Anubisland home screen on mobile"
     },
     {
       "src": "/assets/images/pwa/screenshot-desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "NEXUS dashboard on desktop"
+      "label": "Anubisland dashboard on desktop"
     }
   ],
   "shortcuts": [
