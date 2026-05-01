@@ -49,6 +49,8 @@ CLAUDE.md
 !CONTRIBUTORS.md
 !CONTRIBUTING.md
 !CHANGELOG.md
+!CHANGES.md
+!BASELINE.md
 
 # ─── Scripts & Migrations (internal, contain credentials/emails) ──────────────
 /scripts/*

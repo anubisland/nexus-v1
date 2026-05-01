@@ -1,63 +1,44 @@
-AGPL-3.0 Source File Header Template
-=====================================
-Hyper-Local Community Platform — Built on Project NEXUS
-Copyright (C) 2026 Anubisland
-Built on Project NEXUS by Jasper Ford (https://github.com/jasperfordesq-ai/nexus-v1)
-Licensed under the GNU Affero General Public License v3.0 or later.
+AGPL-3.0 License Header Template
+==================================
 
-USAGE
------
-Add the appropriate header block below to EVERY new source file you create.
-This satisfies the AGPL-3.0 requirement that modified source files carry
-prominent notices of modification.
+All NEW source files created in this fork MUST include the appropriate
+header below. For files inherited from upstream (NEXUS V1), retain the
+original copyright and add the Anubisland copyright on modification.
 
-For PHP files — immediately after <?php:
+Baseline SHA: 28421e5609f78466431f1fde6c12ec6cb772dd5a
+Upstream:     https://github.com/jasperfordesq-ai/nexus-v1
+License:      AGPL-3.0-or-later
 
-    <?php
-    // Copyright (C) 2026 Anubisland
-    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
-    // SPDX-License-Identifier: AGPL-3.0-or-later
-    // This file is part of the Hyper-Local Community Platform.
-    // See CHANGES.md for a record of modifications from the upstream source.
 
-For TypeScript / TSX files — at the top of the file:
+--- PHP (place after <?php) ---
 
-    // Copyright (C) 2026 Anubisland
-    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
-    // SPDX-License-Identifier: AGPL-3.0-or-later
-    // This file is part of the Hyper-Local Community Platform.
-    // See CHANGES.md for a record of modifications from the upstream source.
+// Copyright © 2026 Anubisland
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// See LICENSE file in the project root for full license text.
 
-For JavaScript files:
 
-    // Copyright (C) 2026 Anubisland
-    // Built on Project NEXUS by Jasper Ford — https://github.com/jasperfordesq-ai/nexus-v1
-    // SPDX-License-Identifier: AGPL-3.0-or-later
-    // This file is part of the Hyper-Local Community Platform.
-    // See CHANGES.md for a record of modifications from the upstream source.
+--- TypeScript / JavaScript (first lines of file) ---
 
-TOOLING
--------
-The CONTRIBUTING.md SPDX Header Requirement section describes automated
-tooling for adding and verifying headers:
+// Copyright © 2026 Anubisland
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// See LICENSE file in the project root for full license text.
 
-    # Add headers to all files missing them
-    node scripts/add-spdx-headers.mjs
 
-    # Verify all files have correct headers
-    node scripts/check-spdx.mjs
+--- CSS (first lines of file) ---
 
-UPSTREAM ATTRIBUTION
---------------------
-Project NEXUS is Copyright (C) Jasper Ford, licensed under AGPL-3.0-or-later.
-Upstream source: https://github.com/jasperfordesq-ai/nexus-v1
-Fork baseline:   commit 28421e5609f78466431f1fde6c12ec6cb772dd5a (2026-04-30)
+/* Copyright © 2026 Anubisland */
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
 
-All modifications from the baseline are documented in CHANGES.md.
-The NOTICE file at the repository root contains authoritative legal attribution.
 
-FULL LICENSE
-------------
-The full text of the GNU Affero General Public License v3.0 is in the
-LICENSE file at the repository root, and is also available at:
-https://www.gnu.org/licenses/agpl-3.0.txt
+--- Modified upstream files (add BELOW existing header) ---
+
+// Copyright © 2024–2026 Jasper Ford            ← keep original
+// SPDX-License-Identifier: AGPL-3.0-or-later   ← keep original
+// Modifications: Copyright © 2026 Anubisland    ← add this line
+
+
+--- Shell / Python / YAML (after shebang if present) ---
+
+# Copyright © 2026 Anubisland
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# See LICENSE file in the project root for full license text.
