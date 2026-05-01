@@ -79,6 +79,18 @@ docker exec nexus-php-app php artisan migrate
 
 A legacy schema dump is also available at [schema.sql](schema.sql) if needed for reference. For production migrations, see the [deployment guide](docs/DEPLOYMENT.md).
 
+## Documentation
+
+| Document | Audience | Language |
+|----------|----------|----------|
+| [User Guide](docs/USER_GUIDE.md) | Community members — first-time use tutorial | English |
+| [User Guide (Arabic)](docs/USER_GUIDE_AR.md) | Community members — first-time use tutorial | العربية |
+| [Deployment Guide](docs/DEPLOYMENT.md) | Operators | English |
+| [API Reference](docs/API_REFERENCE.md) | Developers | English |
+| [Local Dev Setup](docs/LOCAL_DEV_SETUP.md) | Developers | English |
+| [PHP Conventions](docs/PHP_CONVENTIONS.md) | Developers | English |
+| [Roadmap](docs/ROADMAP.md) | All | English |
+
 ## Project Status
 
 This is **production-ready V1**. The platform is in active production use:
