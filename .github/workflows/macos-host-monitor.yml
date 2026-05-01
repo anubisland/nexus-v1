@@ -1,0 +1,237 @@
+# Copyright © 2024–2026 Jasper Ford
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# macOS Build Host Monitor (ANU-408)
+# Runs every 5 minutes. Checks SSH connectivity, disk/CPU/memory health,
+# and GitHub Actions runner status on the self-hosted macOS CI host.
+# Sends Telegram alerts on any critical failure.
+
+name: macOS Host Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  DISK_WARN_PCT: 85
+  DISK_CRIT_PCT: 95
+  CPU_CRIT_PCT: 90
+  RUNNER_NAME: macos-builder
+
+jobs:
+  check-host:
+    name: macOS host health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ── 1. Write SSH key to file ─────────────────────────────────────────
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MACOS_SSH_PRIVATE_KEY }}" > ~/.ssh/macos_host
+          chmod 600 ~/.ssh/macos_host
+
+      # ── 2. SSH connectivity check ────────────────────────────────────────
+      - name: Check SSH connectivity
+        id: ssh
+        run: |
+          if ssh -i ~/.ssh/macos_host \
+               -o ConnectTimeout=10 \
+               -o StrictHostKeyChecking=accept-new \
+               -o BatchMode=yes \
+               "${{ secrets.MACOS_HOST }}" "echo ok" > /dev/null 2>&1; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=unreachable" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── 3. Collect host metrics via SSH ──────────────────────────────────
+      - name: Collect host metrics
+        id: metrics
+        if: steps.ssh.outputs.status == 'ok'
+        run: |
+          METRICS=$(ssh -i ~/.ssh/macos_host \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=accept-new \
+            -o BatchMode=yes \
+            "${{ secrets.MACOS_HOST }}" '
+            # Disk
+            DISK_PCT=$(df -h / | tail -1 | awk "{gsub(/%/,\"\"); print \$(NF-1)}")
+            DISK_AVAIL=$(df -h / | tail -1 | awk "{print \$(NF-2)}")
+
+            # CPU
+            NCPU=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 1)
+            LOAD_RAW=$(sysctl -n vm.loadavg 2>/dev/null || cat /proc/loadavg 2>/dev/null)
+            LOAD_5MIN=$(echo "$LOAD_RAW" | awk "{for(i=1;i<=NF;i++){if(\$i~/^[0-9]+\\./){c++;if(c==2){print \$i;exit}}}}")
+            LOAD_PCT=$(awk "BEGIN {printf \"%.0f\", ($LOAD_5MIN / $NCPU) * 100}")
+
+            # Memory (macOS)
+            if command -v vm_stat >/dev/null 2>&1; then
+              PAGE_SIZE=$(sysctl -n hw.pagesize)
+              TOTAL_BYTES=$(sysctl -n hw.memsize)
+              FREE_PAGES=$(vm_stat | awk "/Pages free/ {gsub(/\\./, \"\"); print \$3}")
+              INACTIVE=$(vm_stat | awk "/Pages inactive/ {gsub(/\\./, \"\"); print \$3}")
+              TOTAL_MB=$(( TOTAL_BYTES / 1048576 ))
+              FREE_MB=$(( (FREE_PAGES + INACTIVE) * PAGE_SIZE / 1048576 ))
+              USED_MB=$(( TOTAL_MB - FREE_MB ))
+              MEM_PCT=$(( USED_MB * 100 / TOTAL_MB ))
+            elif [ -f /proc/meminfo ]; then
+              TOTAL=$(awk "/MemTotal/ {print int(\$2/1024)}" /proc/meminfo)
+              AVAIL=$(awk "/MemAvailable/ {print int(\$2/1024)}" /proc/meminfo)
+              USED=$(( TOTAL - AVAIL ))
+              MEM_PCT=$(( USED * 100 / TOTAL ))
+              TOTAL_MB=$TOTAL
+              USED_MB=$USED
+            fi
+
+            # Runner process
+            if pgrep -f "actions-runner\|Runner.Listener" >/dev/null 2>&1; then
+              RUNNER_PROC=running
+            else
+              RUNNER_PROC=stopped
+            fi
+
+            echo "disk_pct=${DISK_PCT:-0}|disk_avail=${DISK_AVAIL:-?}|cpu_pct=${LOAD_PCT:-0}|mem_pct=${MEM_PCT:-0}|mem_used=${USED_MB:-0}|mem_total=${TOTAL_MB:-0}|runner_proc=${RUNNER_PROC}|load5=${LOAD_5MIN:-0}|ncpu=${NCPU:-1}"
+          ')
+
+          echo "raw=${METRICS}" >> "$GITHUB_OUTPUT"
+
+          # Parse into individual outputs
+          for PAIR in $(echo "$METRICS" | tr '|' ' '); do
+            KEY="${PAIR%%=*}"
+            VAL="${PAIR#*=}"
+            echo "${KEY}=${VAL}" >> "$GITHUB_OUTPUT"
+          done
+
+      # ── 4. Check GitHub Actions runner status via API ────────────────────
+      - name: Check runner status via API
+        id: runner
+        if: steps.ssh.outputs.status == 'ok'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          RESPONSE=$(curl -sS --max-time 10 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/actions/runners" 2>/dev/null)
+
+          STATUS=$(echo "$RESPONSE" | jq -r \
+            --arg name "${{ env.RUNNER_NAME }}" \
+            '.runners[] | select(.name == $name) | .status' 2>/dev/null)
+
+          if [ -z "$STATUS" ]; then
+            echo "status=not_found" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── 5. Evaluate and build alert ──────────────────────────────────────
+      - name: Evaluate health
+        id: evaluate
+        run: |
+          SSH_STATUS="${{ steps.ssh.outputs.status }}"
+          ALERTS=""
+          WARNINGS=""
+
+          # SSH unreachable = immediate critical
+          if [ "$SSH_STATUS" != "ok" ]; then
+            ALERTS="🚨 macOS BUILD HOST UNREACHABLE%0A%0ASSH connection to ${{ env.RUNNER_NAME }} failed. Host may be down or network issue."
+            echo "alert=true" >> "$GITHUB_OUTPUT"
+            echo "message=${ALERTS}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          DISK="${{ steps.metrics.outputs.disk_pct }}"
+          CPU="${{ steps.metrics.outputs.cpu_pct }}"
+          MEM="${{ steps.metrics.outputs.mem_pct }}"
+          RUNNER_API="${{ steps.runner.outputs.status }}"
+          RUNNER_PROC="${{ steps.metrics.outputs.runner_proc }}"
+          DISK_AVAIL="${{ steps.metrics.outputs.disk_avail }}"
+
+          # Disk critical
+          if [ "${DISK:-0}" -ge "${{ env.DISK_CRIT_PCT }}" ]; then
+            ALERTS="${ALERTS}🔴 Disk CRITICAL: ${DISK}% used (${DISK_AVAIL} free)%0A"
+          elif [ "${DISK:-0}" -ge "${{ env.DISK_WARN_PCT }}" ]; then
+            WARNINGS="${WARNINGS}🟡 Disk WARNING: ${DISK}% used (${DISK_AVAIL} free)%0A"
+          fi
+
+          # CPU critical
+          if [ "${CPU:-0}" -ge "${{ env.CPU_CRIT_PCT }}" ]; then
+            ALERTS="${ALERTS}🔴 CPU CRITICAL: ${CPU}% load (5-min avg)%0A"
+          fi
+
+          # Memory warning
+          if [ "${MEM:-0}" -ge 85 ]; then
+            WARNINGS="${WARNINGS}🟡 Memory WARNING: ${MEM}% used%0A"
+          fi
+
+          # Runner offline (API check is authoritative)
+          if [ "$RUNNER_API" = "offline" ]; then
+            ALERTS="${ALERTS}🔴 Runner '${RUNNER_NAME}' is OFFLINE (GitHub API)%0A"
+          elif [ "$RUNNER_API" = "not_found" ] && [ "$RUNNER_PROC" = "stopped" ]; then
+            ALERTS="${ALERTS}🔴 Runner '${RUNNER_NAME}' not found and process not running%0A"
+          fi
+
+          if [ -n "$ALERTS" ]; then
+            FULL="⚠️ macOS BUILD HOST ALERT%0A%0A${ALERTS}"
+            [ -n "$WARNINGS" ] && FULL="${FULL}%0A${WARNINGS}"
+            FULL="${FULL}%0AHost: ${{ secrets.MACOS_HOST }}%0ACheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "alert=true" >> "$GITHUB_OUTPUT"
+            echo "message=${FULL}" >> "$GITHUB_OUTPUT"
+          elif [ -n "$WARNINGS" ]; then
+            echo "alert=false" >> "$GITHUB_OUTPUT"
+            echo "✅ macOS host healthy with warnings: ${WARNINGS}"
+          else
+            echo "alert=false" >> "$GITHUB_OUTPUT"
+            echo "✅ macOS host fully healthy — disk:${DISK}% cpu:${CPU}% mem:${MEM}% runner:${RUNNER_API:-${RUNNER_PROC}}"
+          fi
+
+      # ── 6. Send Telegram alert ───────────────────────────────────────────
+      - name: Send Telegram alert
+        if: steps.evaluate.outputs.alert == 'true'
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          MSG:      ${{ steps.evaluate.outputs.message }}
+        run: |
+          if [ -z "${TG_TOKEN}" ] || [ -z "${TG_CHAT}" ]; then
+            echo "::error::TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secret is not set"
+            exit 1
+          fi
+
+          MESSAGE=$(printf '%s' "${MSG}" | sed 's/%0A/\n/g')
+
+          RESPONSE=$(curl -sS --max-time 20 --retry 2 \
+            "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT}" \
+            --data-urlencode "text=${MESSAGE}")
+
+          echo "${RESPONSE}"
+
+          if echo "${RESPONSE}" | jq -e '.ok == true' > /dev/null; then
+            echo "✅ Telegram alert sent"
+          else
+            echo "::error::Telegram API rejected the message"
+            exit 1
+          fi
+
+      # ── 7. Fail workflow on critical alerts ──────────────────────────────
+      - name: Fail workflow on alert
+        if: steps.evaluate.outputs.alert == 'true'
+        run: exit 1
+
+      # ── 8. Cleanup SSH key ──────────────────────────────────────────────
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/macos_host
