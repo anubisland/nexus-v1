@@ -83,8 +83,8 @@ A legacy schema dump is also available at [schema.sql](schema.sql) if needed for
 
 | Document | Audience | Language |
 |----------|----------|----------|
-| [User Guide](docs/USER_GUIDE.md) | Community members — first-time use tutorial | English |
-| [User Guide (Arabic)](docs/USER_GUIDE_AR.md) | Community members — first-time use tutorial | العربية |
+| [User Guide](docs/guides/USER_GUIDE.md) | Community members — first-time use tutorial | English |
+| [User Guide (Arabic)](docs/guides/USER_GUIDE_AR.md) | Community members — first-time use tutorial | العربية |
 | [Deployment Guide](docs/DEPLOYMENT.md) | Operators | English |
 | [API Reference](docs/API_REFERENCE.md) | Developers | English |
 | [Local Dev Setup](docs/LOCAL_DEV_SETUP.md) | Developers | English |

@@ -1,0 +1,54 @@
+# Copyright © 2024–2026 Jasper Ford
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Author: Jasper Ford
+# See NOTICE file for attribution and acknowledgements.
+#
+# Daily release workflow for Project NEXUS (web platform).
+#
+# Per ANU-662 (daily release policy) and ANU-682 (release-hygiene gate),
+# every release run must pass the org-wide hygiene gate before any build
+# step runs. The reusable workflow lives at
+#   anubisland/.github/.github/workflows/release-hygiene-gate.yml@v1
+# and enforces CHANGELOG / README / docs/guides hygiene.
+#
+# Rollout: ANU-721 wires this in `enforce: warn` for the first 48 h.
+# A follow-up flip to `enforce: fail` lands once two consecutive warn-mode
+# runs are clean.
+
+name: Daily Release
+
+on:
+  schedule:
+    # 06:00 UTC every day — early enough to be reviewed during EU/UK morning
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      enforce:
+        description: 'hygiene gate enforce mode (warn | fail)'
+        required: false
+        type: string
+        default: warn
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    uses: anubisland/.github/.github/workflows/release-hygiene-gate.yml@v1
+    with:
+      enforce: ${{ github.event.inputs.enforce || 'warn' }}
+
+  build:
+    name: Build & publish (placeholder)
+    needs: hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hygiene verdict
+        run: |
+          echo "Hygiene gate verdict: ${{ needs.hygiene.outputs.verdict }}"
+          echo "Web platform builds are deployed via scripts/safe-deploy.sh on the production"
+          echo "Azure VM. The container image build/publish step will be wired here once the"
+          echo "registry credentials are provisioned (tracked separately under ANU-662)."
