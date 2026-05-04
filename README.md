@@ -50,7 +50,7 @@ Time banking is a community-based system where members exchange services using t
 ```bash
 # Clone the repository
 git clone https://github.com/jasperfordesq-ai/nexus-v1.git
-cd nexus-v1
+cd nexus-v1 || exit
 
 # Copy the example environment file and fill in your values
 cp .env.docker.example .env.docker
@@ -88,7 +88,6 @@ A legacy schema dump is also available at [schema.sql](schema.sql) if needed for
 | [Deployment Guide](docs/DEPLOYMENT.md) | Operators | English |
 | [API Reference](docs/API_REFERENCE.md) | Developers | English |
 | [Local Dev Setup](docs/LOCAL_DEV_SETUP.md) | Developers | English |
-| [PHP Conventions](docs/PHP_CONVENTIONS.md) | Developers | English |
 | [Roadmap](docs/ROADMAP.md) | All | English |
 
 ## Project Status
